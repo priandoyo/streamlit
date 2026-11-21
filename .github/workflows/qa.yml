@@ -1,0 +1,50 @@
+
+name: Streamlit QA Gate
+
+# Trigger the workflow
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Minimum permissions
+permissions:
+  contents: read
+
+jobs:
+  quality-check:
+    name: Software QA Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Get source code
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # 2. Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff
+
+      # GATE 1: Python syntax validation
+      - name: Check Python syntax
+        run: python -m compileall -q .
+
+      # GATE 2: Application dependency validation
+      - name: Check Streamlit installation
+        run: streamlit --version
+
+      # GATE 3: Code quality validation
+      - name: Check code quality with Ruff
+        run: ruff check .
